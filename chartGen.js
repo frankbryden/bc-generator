@@ -17,6 +17,15 @@ class Block {
         return new Block(this.x, this.y, this.width, this.height, this.color);
     }
 
+    onClick (x, y){
+        if (x > this.x && x < this.x + this.width){
+            if (y > this.y && y < this.y + this.height){
+                return this.id
+            }
+        }
+        return -1;
+    }
+
     render(ctx){
         ctx.fillStyle = this.color;
         ctx.strokeStyle = "white";
@@ -55,6 +64,10 @@ class Task {
         return ids;
     }
 
+    onClick (x, y){
+        return this.blocks.map(block => block.onClick(x, y));
+    }
+
     initBlocks(){
         this.blocks = [];
         for (var i = 0; i < this.length; i++){
@@ -63,6 +76,12 @@ class Task {
 
         this.height = this.blocks[0].y + this.blocks[0].height - this.blocks[this.blocks.length - 1].y;
         console.log("This task has a total height of " + this.height);
+    }
+
+    recalculateBlockPositions(){
+        for (var i = 0; i < this.length; i++){
+            this.blocks[i].y = this.yy - (blockHeight + blockSpacing)*i;
+        }
     }
 
     render(ctx){
@@ -82,7 +101,7 @@ class BurndownChart{
         this.day = 0;
         this.days = {};
         this.currentX =  this.getXShift();
-        this.currentY = this.toLocalCoordsY(this.margin);
+        this.currentY = this.toLocalCoordsY(0);
     }
 
     addTask(length, id, baseCol){
@@ -101,6 +120,27 @@ class BurndownChart{
         });
         this.day++;
         console.log(this.days);
+    }
+
+    onClick(x, y){
+        for (let day of Object.keys(this.days)){
+            let removedId = this.days[day].map(task => task.onClick(x, y)).flat().filter(v => v != -1)[0];
+            if (removedId != undefined){
+                console.log("Day " + day + " -> " + removedId);
+                this.removeBlock(removedId, day);
+            }
+        }
+    }
+
+    removeBlock(blockId, blockDay){
+        for (let day of Object.keys(this.days)){
+            if (day < blockDay){
+                continue;
+            }
+            console.log("Need to remove " + blockId + " from");
+            console.log(this.days[day]);
+        }
+
     }
 
     getXShift(day){
@@ -134,8 +174,11 @@ class BurndownChart{
         //Render tasks
         for (var day of Object.keys(this.days)){
             //console.log("drawing day at " + this.getXShift(day) + ", " + this.toLocalCoordsY(-this.margin));
-            ctx.fillText("Day " + day, this.getXShift(day), this.toLocalCoordsY(-this.margin));
-            for (var task of this.tasks){
+            ctx.fillStyle = "#000000";
+            ctx.fillText("Day " + day, this.getXShift(day), this.toLocalCoordsY(-this.margin + textHeight/2));
+            //ctx.fillText("" + this.getXShift(day) + ", " + this.toLocalCoordsY(-this.margin + textHeight), 40, 605);
+            for (var task of this.days[day]){
+                //console.log(task);
                 task.render(ctx);
             }
             
@@ -173,7 +216,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let addDayBtn = document.getElementById("addDay");
     addDayBtn.onclick = function(){chart.addDay()};
-    
+    document.onclick = ev => {
+        chart.onClick(ev.layerX, ev.layerY);
+    };
     
     animate();
 });
