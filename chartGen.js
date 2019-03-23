@@ -68,20 +68,38 @@ class Task {
         return this.blocks.map(block => block.onClick(x, y));
     }
 
+    removeBlock(blockId){
+        console.log("here");
+        console.log(this.blocks);
+        let index = this.blocks.indexOf(this.blocks.filter(block => block.id == blockId)[0]);
+        if (index != -1){
+            this.blocks.splice(index, 1);
+        }
+    }
+          
+
     initBlocks(){
         this.blocks = [];
         for (var i = 0; i < this.length; i++){
             this.blocks.push(new Block(this.x, this.y - (blockHeight + blockSpacing)*i, blockWidth, blockHeight, this.id + (i + 1)/10, this.baseCol));
         }
+        console.log("bottom block at y = " + this.blocks[0].y + ", this.y = "+this.y);
 
-        this.height = this.blocks[0].y + this.blocks[0].height - this.blocks[this.blocks.length - 1].y;
+        this.updateHeight();
         console.log("This task has a total height of " + this.height);
     }
 
     recalculateBlockPositions(){
-        for (var i = 0; i < this.length; i++){
-            this.blocks[i].y = this.yy - (blockHeight + blockSpacing)*i;
+        for (var i = 0; i < this.blocks.length; i++){
+            this.blocks[i].y = this.y - (blockHeight + blockSpacing)*i;
         }
+        console.log("bottom block at y = " + this.blocks[0].y + ", this.y = "+this.y);
+        this.updateHeight();
+    }
+
+    updateHeight(){
+        console.log("we have " + this.blocks.length + " blocks");
+        this.height = this.blocks[0].y + this.blocks[0].height - this.blocks[this.blocks.length - 1].y;
     }
 
     render(ctx){
@@ -128,7 +146,17 @@ class BurndownChart{
             if (removedId != undefined){
                 console.log("Day " + day + " -> " + removedId);
                 this.removeBlock(removedId, day);
+                this.recalculateBlockPositionsOnDay(day);
             }
+        }
+    }
+
+    recalculateBlockPositionsOnDay(day){
+        let currentY = this.toLocalCoordsY(0);
+        for (var task of this.days[day]){
+            task.y = currentY;
+            task.recalculateBlockPositions();
+            currentY -= task.height + blockSpacing;
         }
     }
 
@@ -139,6 +167,10 @@ class BurndownChart{
             }
             console.log("Need to remove " + blockId + " from");
             console.log(this.days[day]);
+            this.days[day].forEach(task => {
+                task.removeBlock(blockId);
+                this.recalculateBlockPositionsOnDay(day);
+            });
         }
 
     }
