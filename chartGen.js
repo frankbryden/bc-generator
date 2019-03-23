@@ -10,11 +10,10 @@ class Block {
         this.height = height;
         this.id = id;
         this.color = color;
-        console.log(this);
     }
 
     clone(){
-        return new Block(this.x, this.y, this.width, this.height, this.color);
+        return new Block(this.x, this.y, this.width, this.height, this.id, this.color);
     }
 
     onClick (x, y){
@@ -43,7 +42,7 @@ class Block {
 class Task {
     constructor(x, y, length, id, baseCol){
         this.x = x;
-        this.y = y - blockHeight/2;
+        this.y = y;
         this.length = length;
         this.id = id;
         this.baseCol = baseCol;
@@ -74,7 +73,10 @@ class Task {
         let index = this.blocks.indexOf(this.blocks.filter(block => block.id == blockId)[0]);
         if (index != -1){
             this.blocks.splice(index, 1);
+            console.log('removed block from task ' + this.baseCol);
+        } else {
         }
+        console.log(this.blocks);
     }
           
 
@@ -83,23 +85,25 @@ class Task {
         for (var i = 0; i < this.length; i++){
             this.blocks.push(new Block(this.x, this.y - (blockHeight + blockSpacing)*i, blockWidth, blockHeight, this.id + (i + 1)/10, this.baseCol));
         }
-        console.log("bottom block at y = " + this.blocks[0].y + ", this.y = "+this.y);
-
         this.updateHeight();
-        console.log("This task has a total height of " + this.height);
     }
 
     recalculateBlockPositions(){
         for (var i = 0; i < this.blocks.length; i++){
+            this.blocks[i].x = this.x;
             this.blocks[i].y = this.y - (blockHeight + blockSpacing)*i;
         }
-        console.log("bottom block at y = " + this.blocks[0].y + ", this.y = "+this.y);
         this.updateHeight();
     }
 
     updateHeight(){
         console.log("we have " + this.blocks.length + " blocks");
-        this.height = this.blocks[0].y + this.blocks[0].height - this.blocks[this.blocks.length - 1].y;
+        if (this.blocks.length > 0){
+            this.height = this.blocks[0].y + this.blocks[0].height - this.blocks[this.blocks.length - 1].y;
+        } else {
+            this.height = - blockSpacing;
+        }
+        
     }
 
     render(ctx){
@@ -119,7 +123,8 @@ class BurndownChart{
         this.day = 0;
         this.days = {};
         this.currentX =  this.getXShift();
-        this.currentY = this.toLocalCoordsY(0);
+        this.currentY = this.toLocalCoordsY(0) - blockHeight;
+        console.log("local coords init : " + this.toLocalCoordsY(0))
     }
 
     addTask(length, id, baseCol){
@@ -130,15 +135,27 @@ class BurndownChart{
 
     addDay(){
         this.currentX = this.getXShift(this.day);
-        this.days[this.day] = this.tasks.map((task) => {
+        let sourceList;
+        if (this.day == 0){
+            sourceList = this.tasks;
+            console.log('sourceList based on tasks');
+        } else {
+            sourceList = this.days[this.day - 1];
+            console.log('sourceList based on previous day');
+        }
+        this.days[this.day] = sourceList.map((task) => {
             let newTask = task.clone();
             newTask.x = this.currentX;
-            newTask.initBlocks();
+            if (this.day == 0){
+                newTask.initBlocks();
+            }
             return newTask;
         });
+        this.recalculateBlockPositionsOnDay(this.day);
         this.day++;
         console.log(this.days);
     }
+
 
     onClick(x, y){
         for (let day of Object.keys(this.days)){
@@ -152,7 +169,7 @@ class BurndownChart{
     }
 
     recalculateBlockPositionsOnDay(day){
-        let currentY = this.toLocalCoordsY(0);
+        let currentY = this.toLocalCoordsY(0) - blockHeight;
         for (var task of this.days[day]){
             task.y = currentY;
             task.recalculateBlockPositions();
