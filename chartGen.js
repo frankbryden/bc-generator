@@ -1,6 +1,8 @@
+//TODO hovering over blocks would reveal task description
+
 var blockWidth = 60;
 var blockHeight = 20;
-var blockSpacing = 7;
+var blockSpacing = 5;
 var textHeight = 14;
 class Block {
     constructor(x, y, width, height, id, color){
@@ -68,15 +70,11 @@ class Task {
     }
 
     removeBlock(blockId){
-        console.log("here");
-        console.log(this.blocks);
         let index = this.blocks.indexOf(this.blocks.filter(block => block.id == blockId)[0]);
         if (index != -1){
             this.blocks.splice(index, 1);
             console.log('removed block from task ' + this.baseCol);
-        } else {
         }
-        console.log(this.blocks);
     }
           
 
@@ -97,7 +95,6 @@ class Task {
     }
 
     updateHeight(){
-        console.log("we have " + this.blocks.length + " blocks");
         if (this.blocks.length > 0){
             this.height = this.blocks[0].y + this.blocks[0].height - this.blocks[this.blocks.length - 1].y;
         } else {
@@ -179,6 +176,8 @@ class BurndownChart{
 
     removeBlock(blockId, blockDay){
         for (let day of Object.keys(this.days)){
+            day = parseInt(day);
+
             if (day < blockDay){
                 continue;
             }
@@ -209,7 +208,7 @@ class BurndownChart{
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
         //Draw axis arrows
-
+        ctx.strokeStyle = "black";
         // X-axis
         ctx.moveTo(this.margin, this.height);
         ctx.lineTo(this.width, this.height);
@@ -242,9 +241,11 @@ var chart;
 
 function init(){
     ctx.font = textHeight + "px sans-serif";
-    chart = new BurndownChart("rgba(220, 180, 80, 200)");
+    chart = new BurndownChart("rgba(206, 227, 229, 200)");
     chart.addTask(4, 1, "rgb(180, 20, 90)");
     chart.addTask(5, 2, "rgb(20, 180, 90)");
+    chart.addTask(8, 3, "rgb(20, 90, 180)");
+    chart.addTask(4, 4, "rgb(133, 93, 252)");
 }
 
 var count = 0;
