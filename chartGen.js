@@ -258,6 +258,10 @@ function animate(){
     chart.render(ctx);
 }
 
+function sayHi(){
+    console.log("hey");
+}
+
 
 document.addEventListener('DOMContentLoaded', function() {
     canvas = document.getElementById("canv");
@@ -269,6 +273,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.onclick = ev => {
         chart.onClick(ev.layerX, ev.layerY);
     };
+
+    //taskId,subTaskCount,taskColor
+    let taskIdInput = document.getElementById("taskId");
+    let subTaskCountInput = document.getElementById("subTaskCount");
+    let taskColorInput = document.getElementById("taskColor");
+
+    let addTaskBtn = document.getElementById("addTask");
     
     animate();
 });
