@@ -1,5 +1,6 @@
 //TODO hovering over blocks would reveal task description
-
+// link to what we're aiming for : https://onedrive.live.com/view.aspx?resid=A67F1CBEC0464F24!274&ithint=file%2cpptx&authkey=!AGk-1km5gUunPAM
+// slide 21
 var blockWidth = 60;
 var blockHeight = 20;
 var blockSpacing = 5;
@@ -128,6 +129,12 @@ class BurndownChart{
         let task = new Task(this.currentX, this.currentY, length, id, baseCol);
         this.currentY -= task.height + blockSpacing;
         this.tasks.push(task);
+        for (let day of Object.keys(this.days)){
+            let newTask = task.clone();
+            newTask.x = this.getXShift(day);
+            this.days[day].push(newTask);
+            this.recalculateBlockPositionsOnDay(day);
+        }
     }
 
     addDay(){
@@ -242,10 +249,10 @@ var chart;
 function init(){
     ctx.font = textHeight + "px sans-serif";
     chart = new BurndownChart("rgba(206, 227, 229, 200)");
-    chart.addTask(4, 1, "rgb(180, 20, 90)");
-    chart.addTask(5, 2, "rgb(20, 180, 90)");
-    chart.addTask(8, 3, "rgb(20, 90, 180)");
-    chart.addTask(4, 4, "rgb(133, 93, 252)");
+    chart.addTask(5, 1, "rgb(20, 180, 90)");
+    chart.addTask(8, 2, "rgb(20, 90, 180)");
+    chart.addTask(4, 3, "rgb(133, 93, 252)");
+    chart.addDay();
 }
 
 var count = 0;
@@ -258,10 +265,7 @@ function animate(){
     chart.render(ctx);
 }
 
-function sayHi(){
-    console.log("hey");
-}
-
+// don't tell Jasmine about
 
 document.addEventListener('DOMContentLoaded', function() {
     canvas = document.getElementById("canv");
@@ -280,6 +284,18 @@ document.addEventListener('DOMContentLoaded', function() {
     let taskColorInput = document.getElementById("taskColor");
 
     let addTaskBtn = document.getElementById("addTask");
+
+    addTaskBtn.onclick = (() => {
+        let taskId = parseInt(taskIdInput.value);
+        let subTaskCount = parseInt(subTaskCountInput.value);
+        let taskColor = taskColorInput.value;
+
+        console.log(taskId);
+        console.log(subTaskCount);
+        console.log(taskColor);
+
+        chart.addTask(subTaskCount, taskId, taskColor);
+    });
     
     animate();
 });
