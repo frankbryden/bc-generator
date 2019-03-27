@@ -2,14 +2,26 @@
     border-width: 1em;
     border-color: cadetblue;
     background-color: deepskyblue;
-    width: 400px;
+    width: 300px;
     align-content: center;
     text-align: center;
     padding: 5px;
+    margin : 20px;
 }
 
 input[type="number"]{
     background: none;
     border-radius: 20px;
     outline: none;
+}
+
+#menu{
+    display:inline-block;
+    position: absolute;
+    top: 20px;
+}
+
+canvas{
+    position: absolute;
+    left: 400px;
 }

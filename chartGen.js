@@ -70,6 +70,19 @@ class Task {
         return this.blocks.map(block => block.onClick(x, y));
     }
 
+    onRightClick(x, y){
+        if (x > this.x && x < this.x + blockWidth){
+            if (y > this.height && y < this.y){
+                return true;
+            } else {
+                console.log(y + " not in between " + this.y + " and " + this.height);
+            }
+        } else {
+            console.log(x + " not in between " + this.x + " and " + (this.x + blockWidth));
+        }
+        return false;
+    }
+
     removeBlock(blockId){
         let index = this.blocks.indexOf(this.blocks.filter(block => block.id == blockId)[0]);
         if (index != -1){
@@ -168,7 +181,20 @@ class BurndownChart{
                 console.log("Day " + day + " -> " + removedId);
                 this.removeBlock(removedId, day);
                 this.recalculateBlockPositionsOnDay(day);
+                return true;
+            } else {
+                return false;
             }
+        }
+    }
+
+    onRightClick(x, y){
+        for (let day of Object.keys(this.days)){
+            console.log(this.days[day]);
+            let val = this.days[day].map(task => {
+                return task.onRightClick(x, y)
+            });
+            console.log(val);
         }
     }
 
@@ -275,15 +301,27 @@ document.addEventListener('DOMContentLoaded', function() {
     let addDayBtn = document.getElementById("addDay");
     addDayBtn.onclick = function(){chart.addDay()};
     document.onclick = ev => {
-        chart.onClick(ev.layerX, ev.layerY);
+        if (ev.srcElement == canvas){
+            console.log(ev);
+            ev.preventDefault();
+            let val = chart.onClick(ev.layerX, ev.layerY);
+            console.log(val);
+        }
     };
+
+    canvas.addEventListener('contextmenu', ev => {
+        chart.onRightClick(ev.layerX, ev.layerY);
+        ev.preventDefault();
+    });
 
     //taskId,subTaskCount,taskColor
     let taskIdInput = document.getElementById("taskId");
     let subTaskCountInput = document.getElementById("subTaskCount");
     let taskColorInput = document.getElementById("taskColor");
+    let chartColor = document.getElementById("chartColor");
 
     let addTaskBtn = document.getElementById("addTask");
+    let drawLineChk = document.getElementById("drawLineChk");
 
     addTaskBtn.onclick = (() => {
         let taskId = parseInt(taskIdInput.value);
@@ -295,6 +333,14 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(taskColor);
 
         chart.addTask(subTaskCount, taskId, taskColor);
+    });
+
+    drawLineChk.onchange = (ev => {
+        console.log(ev);
+    });
+
+    chartColor.onchange = (ev => {
+        chart.bg = chartColor.value;
     });
     
     animate();
