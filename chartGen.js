@@ -22,13 +22,20 @@ class Block {
     onClick (x, y){
         if (x > this.x && x < this.x + this.width){
             if (y > this.y && y < this.y + this.height){
+                console.log("YES");
                 return this.id
+            } else {
+                console.log(this.id + " -> [y] " + y + " is not between " + this.y + " and " + (this.y + this.height));
             }
+        } else {
+            console.log(this.id + " -> [x] " + x + " is not between " + this.x + " and " + (this.x + this.width));
         }
+        console.log(this);
         return -1;
     }
 
     render(ctx){
+        console.log("rendering " + this.id + " at x = " + this.x);
         ctx.fillStyle = this.color;
         ctx.strokeStyle = "white";
         ctx.lineWidth = 2;
@@ -67,6 +74,7 @@ class Task {
     }
 
     onClick (x, y){
+        console.log(x + ", " + y);
         return this.blocks.map(block => block.onClick(x, y));
     }
 
@@ -183,6 +191,8 @@ class BurndownChart{
                 this.recalculateBlockPositionsOnDay(day);
                 return true;
             } else {
+                console.log(this.days[day].map(task => task.onClick(x, y)).flat());
+                console.log("No block to remove");
                 return false;
             }
         }
@@ -284,8 +294,8 @@ function init(){
 var count = 0;
 
 function animate(){
-    //count++;
-    if (count < 50){
+    count++;
+    if (count < 100){
         requestAnimationFrame(animate);
     }
     chart.render(ctx);
@@ -302,7 +312,6 @@ document.addEventListener('DOMContentLoaded', function() {
     addDayBtn.onclick = function(){chart.addDay()};
     document.onclick = ev => {
         if (ev.srcElement == canvas){
-            console.log(ev);
             ev.preventDefault();
             let val = chart.onClick(ev.layerX, ev.layerY);
             console.log(val);
