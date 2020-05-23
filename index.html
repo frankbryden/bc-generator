@@ -1,24 +1,26 @@
 <html>
     <head>
         <script src="chartGen.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/foundation-sites@6.6.3/dist/css/foundation.min.css" integrity="sha256-ogmFxjqiTMnZhxCqVmcqTvjfe1Y/ec4WaRj/aQPvn+I=" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="style.css"></link>
     </head>
     <body>
         <div id="menu">
-            <div class="subCat">
-                <h1>Create Task</h1>
+            <div class="callout">
+                <h3>Create Task</h3>
                 <label for="taskId">Task ID</label><div class="filler"></div> <input type="number" id="taskId"> <br/>
                 <label for="subTaskCount">Task Count</label><div class="filler"></div><input type="number" id="subTaskCount"><br/>
                 <label for="taskColor">Task Color</label><div class="filler"></div><input type="color" id="taskColor"><br/>
-                <button id="addTask">Add Task</button>
+                <button class="button" id="addTask">Add Task</button>
             </div>
-            <div class="subCat">
-                <h1>Chart Options</h1>
+            <div class="callout">
+                <h3>Chart Options</h3>
                 <input type="checkbox" id="drawLineChk"><label for="drawLineChk">Draw Burndown Line</label> <br/>
                 <input type="color" id="chartColor"><label for="chartColor">Chart Color</label>
             </div>
+            <button id="addDay" class="button">Add Day</button>
         </div>
-        <button id="addDay">Add Day</button>
+
         <canvas width="1200" height="600" id="canv"></canvas>
     </body>
 </html>

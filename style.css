@@ -21,9 +21,7 @@ input[type="number"]{
     text-align: center;
 }
 
-input {
-    margin-bottom: 5px;
-}
+
 
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
@@ -40,7 +38,7 @@ input[type=number] {
 #menu{
     display:inline-block;
     position: absolute;
-    top: 20px;
+    top: 0px;
 }
 
 canvas{
@@ -48,6 +46,6 @@ canvas{
     left: 400px;
 }
 
-.filler {
+.fillerFix {
     width:10px;
 }
