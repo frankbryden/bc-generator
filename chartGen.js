@@ -1,10 +1,10 @@
 //TODO hovering over blocks would reveal task description
 // link to what we're aiming for : https://onedrive.live.com/view.aspx?resid=A67F1CBEC0464F24!274&ithint=file%2cpptx&authkey=!AGk-1km5gUunPAM
 // slide 21
-var blockWidth = 60;
-var blockHeight = 20;
-var blockSpacing = 5;
-var textHeight = 14;
+const blockWidth = 60;
+const blockHeight = 20;
+const blockSpacing = 5;
+const textHeight = 14;
 class Block {
     constructor(x, y, width, height, id, color){
         this.x = x;
@@ -24,18 +24,14 @@ class Block {
             if (y > this.y && y < this.y + this.height){
                 console.log("YES");
                 return this.id
-            } else {
-                console.log(this.id + " -> [y] " + y + " is not between " + this.y + " and " + (this.y + this.height));
             }
-        } else {
-            console.log(this.id + " -> [x] " + x + " is not between " + this.x + " and " + (this.x + this.width));
         }
-        console.log(this);
+        //console.log("failed for " + this.id + ": (" + x + ", " + y + ")");
+        //console.log(this);
         return -1;
     }
 
     render(ctx){
-        console.log("rendering " + this.id + " at x = " + this.x);
         ctx.fillStyle = this.color;
         ctx.strokeStyle = "white";
         ctx.lineWidth = 2;
@@ -82,18 +78,14 @@ class Task {
         if (x > this.x && x < this.x + blockWidth){
             if (y > this.height && y < this.y){
                 return true;
-            } else {
-                console.log(y + " not in between " + this.y + " and " + this.height);
             }
-        } else {
-            console.log(x + " not in between " + this.x + " and " + (this.x + blockWidth));
         }
         return false;
     }
 
     removeBlock(blockId){
-        let index = this.blocks.indexOf(this.blocks.filter(block => block.id == blockId)[0]);
-        if (index != -1){
+        let index = this.blocks.indexOf(this.blocks.filter(block => block.id === blockId)[0]);
+        if (index !== -1){
             this.blocks.splice(index, 1);
             console.log('removed block from task ' + this.baseCol);
         }
@@ -102,7 +94,7 @@ class Task {
 
     initBlocks(){
         this.blocks = [];
-        for (var i = 0; i < this.length; i++){
+        for (let i = 0; i < this.length; i++){
             this.blocks.push(new Block(this.x, this.y - (blockHeight + blockSpacing)*i, blockWidth, blockHeight, this.id + (i + 1)/10, this.baseCol));
         }
         this.updateHeight();
@@ -126,13 +118,11 @@ class Task {
     }
 
     render(ctx){
-        for (var block of this.blocks){
-            block.render(ctx);
-        }
+        this.blocks.forEach(block => block.render(ctx));
     }
 }
 
-class BurndownChart{
+class BurndownChart {
     constructor(bg){
         this.bg = bg;
         this.tasks = [];
@@ -143,7 +133,8 @@ class BurndownChart{
         this.days = {};
         this.currentX =  this.getXShift();
         this.currentY = this.toLocalCoordsY(0) - blockHeight;
-        console.log("local coords init : " + this.toLocalCoordsY(0))
+        this.renderBurndownLine = false;
+        console.log("local coords init : " + this.toLocalCoordsY(0));
     }
 
     addTask(length, id, baseCol){
@@ -161,7 +152,7 @@ class BurndownChart{
     addDay(){
         this.currentX = this.getXShift(this.day);
         let sourceList;
-        if (this.day == 0){
+        if (this.day === 0){
             sourceList = this.tasks;
             console.log('sourceList based on tasks');
         } else {
@@ -171,11 +162,12 @@ class BurndownChart{
         this.days[this.day] = sourceList.map((task) => {
             let newTask = task.clone();
             newTask.x = this.currentX;
-            if (this.day == 0){
+            if (this.day === 0){
                 newTask.initBlocks();
             }
             return newTask;
         });
+        console.log(this.days[this.day]);
         this.recalculateBlockPositionsOnDay(this.day);
         this.day++;
         console.log(this.days);
@@ -184,18 +176,14 @@ class BurndownChart{
 
     onClick(x, y){
         for (let day of Object.keys(this.days)){
-            let removedId = this.days[day].map(task => task.onClick(x, y)).flat().filter(v => v != -1)[0];
-            if (removedId != undefined){
-                console.log("Day " + day + " -> " + removedId);
+            let removedId = this.days[day].map(task => task.onClick(x, y)).flat().filter(v => v !== -1)[0];
+            if (removedId !== undefined){
                 this.removeBlock(removedId, day);
                 this.recalculateBlockPositionsOnDay(day);
                 return true;
-            } else {
-                console.log(this.days[day].map(task => task.onClick(x, y)).flat());
-                console.log("No block to remove");
-                return false;
             }
         }
+        return false;
     }
 
     onRightClick(x, y){
@@ -208,9 +196,13 @@ class BurndownChart{
         }
     }
 
+    toggleBurndownLine(){
+        this.renderBurndownLine = !this.renderBurndownLine;
+    }
+
     recalculateBlockPositionsOnDay(day){
         let currentY = this.toLocalCoordsY(0) - blockHeight;
-        for (var task of this.days[day]){
+        for (let task of this.days[day]){
             task.y = currentY;
             task.recalculateBlockPositions();
             currentY -= task.height + blockSpacing;
@@ -230,6 +222,7 @@ class BurndownChart{
                 task.removeBlock(blockId);
                 this.recalculateBlockPositionsOnDay(day);
             });
+            this.days[day] = this.days[day].filter(task => task.blocks.length > 0);
         }
 
     }
@@ -246,11 +239,25 @@ class BurndownChart{
         return this.height - y;
     }
 
+    getTopBlock(day){
+        let dayTasks = this.days[day];
+        // the dayTasks looks something like this
+        //
+        // *
+        // *
+        // *
+        // +
+        // +
+        let topTask = dayTasks[dayTasks.length - 1];
+        return topTask.blocks[topTask.blocks.length - 1];
+    }
+
     render(ctx){
         ctx.fillStyle = this.bg;
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
         //Draw axis arrows
+        ctx.beginPath();
         ctx.strokeStyle = "black";
         // X-axis
         ctx.moveTo(this.margin, this.height);
@@ -263,24 +270,56 @@ class BurndownChart{
         ctx.stroke();
 
         //Render tasks
-        for (var day of Object.keys(this.days)){
+        for (let day of Object.keys(this.days)){
             //console.log("drawing day at " + this.getXShift(day) + ", " + this.toLocalCoordsY(-this.margin));
             ctx.fillStyle = "#000000";
             ctx.fillText("Day " + day, this.getXShift(day), this.toLocalCoordsY(-this.margin + textHeight/2));
             //ctx.fillText("" + this.getXShift(day) + ", " + this.toLocalCoordsY(-this.margin + textHeight), 40, 605);
-            for (var task of this.days[day]){
-                //console.log(task);
-                task.render(ctx);
+            this.days[day].forEach(task => task.render(ctx));
+        }
+
+        //Render burndown line
+        console.log("Render burndown line - " + this.renderBurndownLine);
+        if (this.renderBurndownLine){
+
+            let currentY = this.getTopBlock(0).y;
+            /*while (currentY === this.getTopBlock(i).y){
+                currentY = this.getTopBlock(i).y;
+                i++;
+            }*/
+            let currentX = this.getTopBlock(0).x + this.getTopBlock(0).width;
+            let daysCount = Object.keys(this.days).length;
+            for (let i = 0; i < daysCount; i++){
+                ctx.strokeStyle = "black";
+                let topBlockToday = this.getTopBlock(i);
+                let topBlockTomorrowY = (i + 1) >= daysCount ? this.height : this.getTopBlock(i + 1).y;
+                //let topBlockTomorrow = this.getTopBlock(i + 1);
+                if (topBlockToday.y > currentY){
+                    if (topBlockTomorrowY > topBlockToday.y){
+                        //this block is lower than the last drawn block, we need to draw the line here
+                        ctx.moveTo(currentX, currentY);
+                        //move to the next block (the current block), which will become the starting point in the next
+                        //iteration. Might as wall set those variables now.
+                        currentX = topBlockToday.x + topBlockToday.width;
+                        currentY = topBlockToday.y;
+                        ctx.lineTo(currentX, currentY);
+                        ctx.stroke();
+                    }
+
+                } else {
+                    //currentX = topBlockToday.x + topBlockToday.width;
+                    console.log("Render burndown line - skip wait for next - " + topBlockToday.y + " <= " + currentY);
+                    //no work was done - the block is the same height as previous - skip
+                }
             }
-            
         }
         
     }
 }
 
-var canvas;
-var ctx;
-var chart;
+let canvas;
+let ctx;
+let chart;
 
 function init(){
     ctx.font = textHeight + "px sans-serif";
@@ -291,12 +330,12 @@ function init(){
     chart.addDay();
 }
 
-var count = 0;
+let count = 0;
 
 function animate(){
-    count++;
+    //count++;
     if (count < 100){
-        requestAnimationFrame(animate);
+        //requestAnimationFrame(animate);
     }
     chart.render(ctx);
 }
@@ -309,11 +348,12 @@ document.addEventListener('DOMContentLoaded', function() {
     init();
     
     let addDayBtn = document.getElementById("addDay");
-    addDayBtn.onclick = function(){chart.addDay()};
+    addDayBtn.onclick = function(){chart.addDay(); animate();};
     document.onclick = ev => {
-        if (ev.srcElement == canvas){
+        if (ev.srcElement === canvas){
             ev.preventDefault();
             let val = chart.onClick(ev.layerX, ev.layerY);
+            animate();
             console.log(val);
         }
     };
@@ -342,14 +382,17 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(taskColor);
 
         chart.addTask(subTaskCount, taskId, taskColor);
+        animate();
     });
 
     drawLineChk.onchange = (ev => {
-        console.log(ev);
+        chart.toggleBurndownLine();
+        animate();
     });
 
-    chartColor.onchange = (ev => {
+    chartColor.onchange = (() => {
         chart.bg = chartColor.value;
+        animate();
     });
     
     animate();
