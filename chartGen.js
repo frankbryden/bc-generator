@@ -249,7 +249,7 @@ class BurndownChart {
         // +
         // +
         let topTask = dayTasks[dayTasks.length - 1];
-        return topTask.blocks[topTask.blocks.length - 1];
+        return topTask === undefined ? {x: this.getXShift(day), y: this.height, width: blockWidth} : topTask.blocks[topTask.blocks.length - 1];
     }
 
     render(ctx){
@@ -281,21 +281,21 @@ class BurndownChart {
         //Render burndown line
         console.log("Render burndown line - " + this.renderBurndownLine);
         if (this.renderBurndownLine){
-
+            let daysCount = Object.keys(this.days).length;
             let currentY = this.getTopBlock(0).y;
-            /*while (currentY === this.getTopBlock(i).y){
+            let i = 0;
+            while (i < daysCount && currentY === this.getTopBlock(i).y){
                 currentY = this.getTopBlock(i).y;
                 i++;
-            }*/
-            let currentX = this.getTopBlock(0).x + this.getTopBlock(0).width;
-            let daysCount = Object.keys(this.days).length;
-            for (let i = 0; i < daysCount; i++){
+            }
+            let currentX = this.getTopBlock(i - 1).x + this.getTopBlock(i - 1).width;
+            for (; i < daysCount; i++){
                 ctx.strokeStyle = "black";
                 let topBlockToday = this.getTopBlock(i);
                 let topBlockTomorrowY = (i + 1) >= daysCount ? this.height : this.getTopBlock(i + 1).y;
                 //let topBlockTomorrow = this.getTopBlock(i + 1);
                 if (topBlockToday.y > currentY){
-                    if (topBlockTomorrowY > topBlockToday.y){
+                    if (topBlockTomorrowY > topBlockToday.y || i == daysCount - 1){
                         //this block is lower than the last drawn block, we need to draw the line here
                         ctx.moveTo(currentX, currentY);
                         //move to the next block (the current block), which will become the starting point in the next
